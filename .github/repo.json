@@ -1,0 +1,10 @@
+{
+  "description": "Shows whether the tests pass without reading a terminal, and hands a failure to an agent in one click. Agents read the last result instead of running everything again.",
+  "topics": [
+    "hangar-kit",
+    "hangar",
+    "claude-code",
+    "testing",
+    "hooks"
+  ]
+}
