@@ -1,6 +1,6 @@
 //! The Tests tab, in Rust: whether the tests pass, a failure handed to an agent in one click.
 //!
-//! The same tab as `tabs/tests/` (the page Hangar 1.x opens), ported from its controller and view:
+//! Hangar 2.0 draws it with its own widgets; it does:
 //!
 //! - **Reads** the hook's records every 3 seconds (`data.read` of `index.json`, then of the
 //!   runs that changed, one call at a time), the agents (`panes.list`, again on `panes.changed`),
@@ -10,7 +10,7 @@
 //! - Every refusal is a state of the page, drawn: no run yet, denied, failed, an output not
 //!   understood, a send refused.
 //!
-//! `logic` is `tabs/tests/logic.js`, ported and pure. `strings` is its English and French.
+//! `logic` is pure. `strings` is its English and French.
 
 pub mod logic;
 pub mod strings;

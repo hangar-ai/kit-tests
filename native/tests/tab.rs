@@ -1,5 +1,5 @@
-//! The tab: `controller.js` and `view.js`, over the harness in place of a fake `window.hangar`
-//! and a fake DOM. Every case keeps the sentence of the JavaScript test it comes from.
+//! The tab, over the SDK's harness: its calls answered by a fake Hangar, its page read as a
+//! person would read it.
 
 mod common;
 

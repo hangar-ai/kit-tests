@@ -1,5 +1,4 @@
-//! The tab's logic: `logic.js`, and the part of `tab.test.js` that tests it. Every case keeps
-//! the sentence of the JavaScript test it comes from.
+//! The tab's logic, over plain data: no harness, no widgets.
 
 mod common;
 

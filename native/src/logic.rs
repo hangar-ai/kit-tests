@@ -1,5 +1,5 @@
-//! The tab's pure logic, ported from `tabs/tests/logic.js`: the hook's records, turned into
-//! what the page shows, and the brief an agent is handed. No `Context`, no widgets: the tab
+//! The tab's pure logic: the hook's records, turned into
+//! what the tab shows, and the brief an agent is handed. No `Context`, no widgets: the tab
 //! and the tests both use this.
 
 use serde_json::Value;

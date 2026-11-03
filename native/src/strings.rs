@@ -1,4 +1,4 @@
-//! Every string of the tab, in English and in French (`STRINGS` of `tabs/tests/logic.js`), in
+//! Every string of the tab, in English and in French, in
 //! the shape `hangar_kit_sdk::i18n::Strings` reads: a count `n` picks `key_one` or `key_other`,
 //! English fills in what French lacks, and the typography (no-break spaces) is Hangar's.
 

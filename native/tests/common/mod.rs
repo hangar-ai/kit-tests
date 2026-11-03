@@ -1,6 +1,5 @@
 //! Shared by the tests: the hook's records as the tab reads them, and a fake Hangar answering
-//! the tab's calls over an in-memory data folder (`fakeHangar` and `fakeClock` of
-//! `test/helpers.js`).
+//! the tab's calls over an in-memory data folder.
 #![allow(dead_code)]
 
 use std::collections::BTreeMap;
