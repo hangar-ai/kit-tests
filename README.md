@@ -38,6 +38,12 @@ markers, labelled as output copied from a test run: data to read, never instruct
 follow. Designed states: no run yet, all green, not understood, denied, and a send
 refused.
 
+**The tab comes in two forms, with the same behaviour.** Hangar 1.x opens the HTML page
+(`tabs/tests/`). A Hangar with native tabs opens the Rust module (`tabs/tests.wasm`, built
+from `native/`), drawn with Hangar's own widgets; it opens the page only if it cannot load the
+module, and says so in the tab's bar. The manifest stays at schema 1 with its `entry`, and
+the tab's `native` field names the module, which a Hangar that does not know the field ignores.
+
 **A skill** that tells agents to read the last recorded result, rather than run
 everything again, when they are only asked about the state of the tests.
 
@@ -51,7 +57,10 @@ everything again, when they are only asked about the state of the tests.
   command line as typed.
 - **The tab** holds `data.read` (to read those files), `panes.read` (to list the
   agents) and `panes.send` (to send the brief, when you click: never by itself). It writes
-  nothing and runs nothing.
+  nothing and runs nothing. The native tab holds the same three and makes the same calls
+  (`data.read`, `panes.list`, `panes.send`, `tab.setTitle`, `tab.setBadge`); it also copies
+  a command or a message to the clipboard and says « Copied » when you press the copy button
+  (`ui.copy`, `ui.toast`, which need no permission).
 
 It does not change the tests or their output, and sees no test run that did not go
 through a Bash or PowerShell call of an agent.
@@ -62,16 +71,43 @@ through a Bash or PowerShell call of an agent.
 - `bun test` and runners it does not know are « not understood ».
 - `go test` without `-v` counts packages, not tests: the number passed is left blank.
 - A command whose output went to a file (`pnpm test > out.txt`) has nothing to read.
+- **The native tab cannot select text**: its widgets draw text that the pointer cannot select, so
+  a command and a failure's message have a copy button. It shows the first five failures of a
+  run and folds the rest behind « Show N more » (a view may not pass 4 MB, and 40 runs of 50
+  failures would); « Hand over all » still sends the first five, as it always did.
 
 ## Get it
 
 Link `kits/tests` from Hangar, or clone
-<https://github.com/hangar-ai/kit-tests>. Needs Hangar 1.9.0 or later.
-Its tests: `node --test kits/tests/`.
+<https://github.com/hangar-ai/kit-tests>. Needs Hangar 1.9.0 or later; a Hangar with native tabs
+opens the native tab, an older one the page.
+Its tests: `node --test kits/tests/`, and `cargo test --manifest-path native/Cargo.toml`.
 
 ## This repository
 
-`node --test` runs the tests, with Node alone. Hangar's own files are not in this repository. CI takes Hangar UI and the docs from the Hangar tag the
+```text
+hangar-kit.json        the manifest: the HTML `entry`, and `native` beside it
+tabs/tests/            the page, for Hangar 1.x
+tabs/tests.wasm        the native tab, built and committed
+native/                its source: a Rust crate on hangar-kit-sdk (cdylib and rlib)
+  src/logic.rs         tabs/tests/logic.js, ported: pure
+  src/strings.rs       its English and French
+  src/lib.rs           the tab: state, messages, view
+  tests/               the JS tests of the tab, ported, over hangar_kit_sdk::testing::Harness
+hooks/, skills/        the hook and the skill, unchanged
+scripts/build-native.sh
+```
+
+`cargo test --manifest-path native/Cargo.toml` runs the tab's tests, on the host, with no
+WebAssembly. `scripts/build-native.sh` builds `tabs/tests.wasm` (`rustup target add
+wasm32-unknown-unknown` once; the Rust version is in `native/rust-version`). Hangar runs the
+module a kit ships and never builds one, so the module is committed in the same commit as the
+source that made it; `scripts/build-native.sh --check`, which CI runs, fails if it is not what
+`native/` builds. The module is the same bytes wherever it is built: the paths of the machine are
+remapped away. It imports `hangar.log` and `hangar.now` and nothing else, so it needs no WASI.
+
+`node --test` runs the tests of the page, the hook and the manifest, with Node alone. Hangar's own
+files are not in this repository. CI takes Hangar UI and the docs from the Hangar tag the
 manifest's `hangar` names, and `node test/hangar-ui.js --get` does the same here. Without them, these tests
 skip what needs those files, and say so:
 

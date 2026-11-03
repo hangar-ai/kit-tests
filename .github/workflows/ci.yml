@@ -12,3 +12,26 @@ permissions:
 jobs:
   kit-check:
     uses: hangar-ai/.github/.github/workflows/kit-check.yml@v1
+
+  # The native tab: its tests, and the module committed beside the page is the one native/ builds.
+  native:
+    name: native tab
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Rust, at the version the module is built with
+        run: |
+          version=$(cat native/rust-version)
+          rustup toolchain install "$version" --profile minimal --component clippy,rustfmt --target wasm32-unknown-unknown
+          rustup default "$version"
+      - name: Format and lints
+        run: |
+          cargo fmt --manifest-path native/Cargo.toml --check
+          cargo clippy --manifest-path native/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Tests of the tab
+        run: cargo test --manifest-path native/Cargo.toml --locked
+      - name: The committed module is what native/ builds
+        run: scripts/build-native.sh --check
