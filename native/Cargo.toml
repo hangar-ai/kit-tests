@@ -1,0 +1,22 @@
+[package]
+name = "kit-tests-tab"
+description = "The Tests tab of the tests kit, in Rust: built to WebAssembly, run by Hangar"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+# A cdylib is the module Hangar loads (`scripts/build-native.sh`); the rlib is
+# for `cargo test`, which runs the tab on the host with hangar_kit_sdk::testing.
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Until a release tag holds the SDK, its branch; native/Cargo.lock pins the commit.
+hangar-kit-sdk = { git = "https://github.com/hangar-ai/hangar", branch = "feat/native-rust" }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+codegen-units = 1
