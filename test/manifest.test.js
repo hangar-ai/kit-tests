@@ -15,6 +15,7 @@ const read = (...parts) => fs.readFileSync(path.join(KIT, ...parts), "utf8");
 function allFiles(dir = KIT, found = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if ([".git", ".hangar-ui", "node_modules"].includes(entry.name)) continue;
+    if (entry.name === "target" && path.basename(dir) === "native") continue; // cargo's build folder
     if (entry.isDirectory()) allFiles(path.join(dir, entry.name), found);
     else found.push(path.join(dir, entry.name));
   }
@@ -64,9 +65,47 @@ test("the tab: « Tests », and exactly the three permissions it needs", () => {
   assert.equal(tab.id, "tests");
   assert.equal(tab.title, "Tests");
   safePath(tab.entry, [".html"], "tabs[0].entry");
+  safePath(tab.native, [".wasm"], "tabs[0].native");
   safePath(tab.icon, [".svg", ".png"], "tabs[0].icon");
   assert.deepEqual(tab.permissions, ["data.read", "panes.read", "panes.send"]);
   assert.equal(tab.params, undefined);
+});
+
+test("the native tab: a module beside the page, which stays for a Hangar that opens pages", () => {
+  const [tab] = manifest.tabs;
+  assert.equal(manifest.schema, 1, "schema 2 is for a kit with no page to fall back to");
+  assert.equal(tab.entry, "tabs/tests/index.html", "the page a Hangar 1.x opens");
+  assert.equal(tab.native, "tabs/tests.wasm");
+  assert.ok(!path.isAbsolute(tab.native) && !tab.native.split(/[/\\]/).includes(".."), "inside the kit");
+  const file = path.join(KIT, tab.native);
+  assert.ok(fs.statSync(file).size <= 64 * 1024 * 1024, "64 MB at most");
+  assert.ok(!path.basename(file).startsWith("."), "not hidden");
+});
+
+test("the module is WebAssembly built for Hangar: its exports, and no import but hangar.log and hangar.now", () => {
+  const bytes = fs.readFileSync(path.join(KIT, manifest.tabs[0].native));
+  assert.deepEqual([...bytes.subarray(0, 4)], [0, 0x61, 0x73, 0x6d], "WebAssembly");
+  const compiled = new WebAssembly.Module(bytes);
+  const imports = WebAssembly.Module.imports(compiled).map((item) => `${item.module}.${item.name}`);
+  assert.deepEqual(imports.sort(), ["hangar.log", "hangar.now"], "no WASI, no wasm-bindgen");
+  const exports = WebAssembly.Module.exports(compiled).map((item) => item.name);
+  for (const name of ["memory", "hangar_abi_version", "hangar_alloc", "hangar_init", "hangar_update", "hangar_view"]) {
+    assert.ok(exports.includes(name), name);
+  }
+  // Built with the paths of the machine remapped: the same bytes anywhere, and none of a home folder.
+  assert.doesNotMatch(bytes.toString("latin1"), /\/home\/|\/Users\/|[A-Za-z]:\\Users\\/);
+});
+
+test("the module's source is in the repository: a crate on the SDK, a lock, a script, and the build ignored", () => {
+  const cargo = read("native", "Cargo.toml");
+  assert.match(cargo, /crate-type = \["cdylib", "rlib"\]/);
+  assert.match(cargo, /hangar-kit-sdk = \{ git = "https:\/\/github\.com\/hangar-ai\/hangar"/);
+  assert.ok(fs.existsSync(path.join(KIT, "native", "Cargo.lock")), "the lock pins the SDK's commit");
+  assert.ok(fs.existsSync(path.join(KIT, "native", "src", "lib.rs")));
+  assert.match(read("scripts", "build-native.sh"), /wasm32-unknown-unknown/);
+  assert.match(read("scripts", "build-native.sh"), /tabs\/tests\.wasm/);
+  assert.match(read(".gitignore"), /^native\/target\/$/m);
+  assert.match(read(".gitattributes"), /^\*\.wasm binary$/m);
 });
 
 test("the hooks: PostToolUse and PostToolUseFailure, on Bash and PowerShell, with a timeout", () => {

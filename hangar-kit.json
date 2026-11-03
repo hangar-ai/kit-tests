@@ -17,6 +17,7 @@
       "id": "tests",
       "title": "Tests",
       "entry": "tabs/tests/index.html",
+      "native": "tabs/tests.wasm",
       "icon": "icon.svg",
       "permissions": ["data.read", "panes.read", "panes.send"]
     }

@@ -3,5 +3,5 @@
   "private": true,
   "description": "Not a package to install: this file lets `node --test .` find the tests on every Node version.",
   "main": "run-tests.js",
-  "scripts": { "test": "node --test test/" }
+  "scripts": { "test": "node --test test/", "test:native": "cargo test --manifest-path native/Cargo.toml", "build:native": "sh scripts/build-native.sh" }
 }
