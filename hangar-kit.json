@@ -2,7 +2,7 @@
   "schema": 2,
   "id": "tests",
   "name": "Tests",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shows whether the tests pass without reading a terminal, and hands a failure to an agent in one click. Agents read the last result instead of running everything again.",
   "author": "Hangar",
   "homepage": "https://github.com/hangar-ai/kit-tests",
